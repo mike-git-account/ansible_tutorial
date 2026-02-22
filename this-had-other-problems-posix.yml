@@ -1,0 +1,10 @@
+---
+
+- hosts: all
+  become: yes
+  tasks:
+
+    - name: install posix package
+      dnf:
+        name: ansible-collection-ansible-posix
+
