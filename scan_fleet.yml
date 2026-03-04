@@ -1,0 +1,47 @@
+---
+- name: Automate OpenSCAP STIG Scanning
+  #hosts: all
+  hosts: thebunny@192.168.140.139
+  become: yes
+  vars:
+    # Path to the RHEL 9 SCAP Security Guide
+    scap_guide: "/usr/share/xml/scap/ssg/content/ssg-rhel9-ds.xml"
+    # The specific profile you want to run (e.g., STIG, CIS, etc.)
+    scap_profile: "xccdf_org.ssgproject.content_profile_stig"
+    # Where to store reports on the control node
+    local_report_dir: "./scap_reports"
+
+  tasks:
+    - name: Ensure OpenSCAP and Security Guide are installed
+      dnf:
+        name:
+          - openscap-scanner
+          - scap-security-guide
+        state: present
+
+    - name: Run the OpenSCAP Scan
+      command: >
+        oscap xccdf eval
+        --fetch-remote-resources
+        --profile xccdf_org.ssgproject.content_profile_pci-dss
+        --results /tmp/scan-xccdf-results.xml
+        --report /tmp//var/www/html/report.html
+        /usr/share/xml/scap/ssg/content/ssg-rhel9-ds.xml
+      register: scan_result
+      failed_when: scan_result.rc not in [0, 2]
+      # Note: rc 2 means "Rules failed," which is expected during a scan.
+      # rc 0 means "All passed." Anything else is a real error.
+
+    - name: Create local report directory
+      delegate_to: localhost
+      become: no
+      file:
+        path: "{{ local_report_dir }}"
+        state: directory
+        mode: '0755'
+
+    - name: Fetch the HTML report back to the control node
+      fetch:
+        src: "/tmp/{{ inventory_hostname }}-report.html"
+        dest: "{{ local_report_dir }}/"
+        flat: yes
