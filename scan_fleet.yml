@@ -1,7 +1,6 @@
 ---
 - name: Automate OpenSCAP STIG Scanning
-  #hosts: all
-  hosts: thebunny@192.168.140.139
+  hosts: all
   become: yes
   vars:
     # Path to the RHEL 9 SCAP Security Guide
@@ -25,7 +24,7 @@
         --fetch-remote-resources
         --profile xccdf_org.ssgproject.content_profile_pci-dss
         --results /tmp/scan-xccdf-results.xml
-        --report /tmp//var/www/html/report.html
+        --report /tmp/report.html
         /usr/share/xml/scap/ssg/content/ssg-rhel9-ds.xml
       register: scan_result
       failed_when: scan_result.rc not in [0, 2]
@@ -34,14 +33,15 @@
 
     - name: Create local report directory
       delegate_to: localhost
-      become: no
+      become: yes
       file:
-        path: "{{ local_report_dir }}"
+        path: "/var/OpenSCAP_results"
         state: directory
         mode: '0755'
 
-    - name: Fetch the HTML report back to the control node
-      fetch:
-        src: "/tmp/{{ inventory_hostname }}-report.html"
-        dest: "{{ local_report_dir }}/"
-        flat: yes
+#    - name: Fetch the HTML report back to the control node
+#      become: yes
+#      fetch:
+#        src: "/tmp/report.html"
+#        dest: "/var/www/html/"
+#        flat: yes
