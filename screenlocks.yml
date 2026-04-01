@@ -1,0 +1,39 @@
+---
+- name: Configure GNOME Screen Lock Settings
+  hosts: all
+  become: yes
+  tasks:
+    - name: Ensure dconf profile directory exists
+      file:
+        path: /etc/dconf/db/local.d
+        state: directory
+        mode: '0755'
+
+    - name: Set screen lock and idle delay settings
+      copy:
+        dest: /etc/dconf/db/local.d/00-screen-lock
+        content: |
+          [org/gnome/desktop/session]
+          idle-delay=uint32 86400
+
+          [org/gnome/desktop/screensaver]
+          lock-enabled=true
+          lock-delay=uint32 0
+        mode: '0644'
+
+    - name: Ensure dconf lock directory exists
+      file:
+        path: /etc/dconf/db/local.d/locks
+        state: directory
+        mode: '0755'
+
+    - name: Prevent users from changing screen lock settings
+      copy:
+        dest: /etc/dconf/db/local.d/locks/screen-lock
+        content: |
+          /org/gnome/desktop/session/idle-delay
+          /org/gnome/desktop/screensaver/lock-enabled
+        mode: '0644'
+
+    - name: Update dconf database to apply changes
+      command: dconf update
