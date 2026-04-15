@@ -1,0 +1,6 @@
+# Download the OVAL definitions
+wget https://www.redhat.com/security/data/oval/v2/RHEL9/rhel-9.8-patch.oval.xml.bz2
+bunzip2 rhel-9.8-patch.oval.xml.bz2
+
+# Run the scan
+sudo oscap oval eval --results results.xml --report report.html rhel-9.8-patch.oval.xml

@@ -1,0 +1,6 @@
+sudo oscap xccdf eval \
+  --profile <PROFILE_ID> \
+  --fetch-remote-resources \
+  --results results.xml \
+  --report report.html \
+  /usr/share/xml/scap/ssg/content/ssg-your-os-ds.xml
